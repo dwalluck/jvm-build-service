@@ -33,6 +33,7 @@
         <gradle-tooling-api.version>7.5</gradle-tooling-api.version>
         <quarkus-github-api.version>1.302.0</quarkus-github-api.version>
         <cyclonedx-core-java.version>7.1.4</cyclonedx-core-java.version>
+        <asm.version>9.4</asm.version>
     </properties>
 
     <modules>
@@ -124,6 +125,13 @@
                 <groupId>org.cyclonedx</groupId>
                 <artifactId>cyclonedx-core-java</artifactId>
                 <version>${cyclonedx-core-java.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm-bom</artifactId>
+                <version>${asm.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>

@@ -41,6 +41,10 @@ func createPipelineSpec(maven bool, commitTime int64, userConfig *v1alpha12.User
 		build = gradleBuild
 	}
 	zero := int64(0)
+	verifyBuiltArtifactArgs := []string{
+		"verify-built-artifact",
+		"--deploy-path=$(workspaces.source.path)/hacbs-jvm-deployment-repo",
+	}
 	deployArgs := []string{
 		"deploy-container",
 		"--tar-path=$(workspaces.source.path)/hacbs-jvm-deployment-repo.tar.gz",
@@ -158,6 +162,17 @@ func createPipelineSpec(maven bool, commitTime int64, userConfig *v1alpha12.User
 				Args: []string{"$(params.GOALS[*])"},
 
 				Script: strings.ReplaceAll(build, "{{PRE_BUILD_SCRIPT}}", preBuildString),
+			},
+			{
+				Name:            "smoke-test",
+				Image:           "$(params." + PipelineRequestProcessorImage + ")",
+				SecurityContext: &v1.SecurityContext{RunAsUser: &zero},
+				Resources: v1.ResourceRequirements{
+					//TODO: make configurable
+					Requests: v1.ResourceList{"memory": defaultContainerRequestMemory, "cpu": defaultContainerRequestCPU},
+					Limits:   v1.ResourceList{"memory": defaultContainerRequestMemory, "cpu": defaultContainerLimitCPU},
+				},
+				Args: verifyBuiltArtifactArgs,
 			},
 			{
 				Name:            "deploy-and-check-for-contaminates",
