@@ -48,6 +48,7 @@ const (
 	DeployedResources             = "DEPLOYED_RESOURCES"
 	Image                         = "IMAGE"
 	Rebuild                       = "jvmbuildservice.io/rebuild"
+	Verify                        = "jvmbuildservice.io/verify"
 )
 
 type ReconcileArtifactBuild struct {
@@ -163,6 +164,10 @@ func (r *ReconcileArtifactBuild) Reconcile(ctx context.Context, request reconcil
 		case v1alpha1.ArtifactBuildStateBuilding, v1alpha1.ArtifactBuildStateFailed: //ABR can go from failed to complete when contamination is resolved, so we treat it the same as building
 			return r.handleStateBuilding(ctx, log, &abr)
 		}
+	}
+
+	if userConfig.Spec.VerifyBuiltArtifacts {
+		return reconcile.Result{}, nil
 	}
 
 	return reconcile.Result{}, nil

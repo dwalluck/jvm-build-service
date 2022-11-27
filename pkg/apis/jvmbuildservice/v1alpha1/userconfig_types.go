@@ -19,6 +19,8 @@ const (
 type UserConfigSpec struct {
 	EnableRebuilds bool `json:"enableRebuilds,omitempty"`
 
+	VerifyBuiltArtifacts bool `json:"verifyBuiltArtifacts,omitempty"`
+
 	AdditionalRecipes []string `json:"additionalRecipes,omitempty"`
 
 	MavenBaseLocations map[string]string `json:"mavenBaseLocations,omitempty"`

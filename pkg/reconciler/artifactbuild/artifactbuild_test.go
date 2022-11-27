@@ -40,6 +40,7 @@ func setupClientAndReconciler(objs ...runtimeclient.Object) (runtimeclient.Clien
 		ObjectMeta: metav1.ObjectMeta{Name: v1alpha1.UserConfigName, Namespace: metav1.NamespaceDefault},
 		Spec: v1alpha1.UserConfigSpec{
 			EnableRebuilds: true,
+			VerifyBuiltArtifacts: true,
 		},
 	}
 	objs = append(objs, sysConfig)
