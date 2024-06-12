@@ -6,11 +6,19 @@ import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.signature.SignatureReader;
+
 public final class AsmUtils {
+
+    public static final String INIT = "<init>";
+
     private AsmUtils() {
 
     }
@@ -47,4 +55,82 @@ public final class AsmUtils {
         return ((access & b) == b);
     }
 
+    public static String fixName(String name) {
+        return !name.isEmpty() ? StringUtils.removeStart(name, "java/lang/").replace('/', '.') : "?";
+    }
+
+    public static String signatureToJavaCode(String name, String desc, String signature, List<String> exceptions) {
+        if (signature == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        SignatureReader reader = new SignatureReader(signature);
+        JavaCodeSignatureWriter writer = new JavaCodeSignatureWriter();
+        reader.accept(writer);
+
+        if (!signature.contains("(") && !signature.contains("<")) {
+            System.out.println("desc: " + desc + ", signature: " + signature);
+            SignatureReader reader1 = new SignatureReader(signature);
+            JavaCodeSignatureWriter writer1 = new JavaCodeSignatureWriter();
+            reader1.acceptType(writer1);
+            sb.append(writer1);
+            return sb.toString();
+        } else {
+            if (desc != null && !desc.contains("(")) {
+                System.out.println("desc: " + desc);
+
+                if (!sb.isEmpty()) {
+                    sb.append(' ');
+                }
+
+                sb.append(fixName(Type.getType(desc).getClassName()));
+            }
+        }
+
+        if (writer.hasFormals()) {
+            sb.append(' ').append(writer.getFormals());
+        }
+
+        if (name != null && !isConstructor(name)) {
+            if (writer.getReturnType() == null) {
+                if (desc != null) {
+                    sb.append(fixName(Type.getReturnType(desc).getClassName())).append(' ');
+                }
+            } else {
+                String returnType = writer.getReturnType().toString();
+                System.out.println("returnType: " + returnType);
+                sb.append(returnType).append(' ');
+            }
+        }
+
+        if (name != null) {
+            if (isConstructor(name)) {
+                sb.append('(');
+            } else {
+                sb.append(name).append('(');
+            }
+        }
+
+        if (!writer.getParameters().isEmpty()) {
+            String s = writer.getParameters().stream().map(JavaCodeSignatureWriter::toString).collect(Collectors.joining(", "));
+            sb.append(s).append(')');
+        } else {
+            sb.append(')');
+        }
+
+        if (exceptions != null && !exceptions.isEmpty()) {
+            sb.append(" throws ");
+            String s = exceptions.stream().map(AsmUtils::fixName).collect(Collectors.joining(", "));
+            sb.append(s);
+        }
+
+        System.out.println("Java code signature: " + sb);
+
+        return sb.toString();
+    }
+
+    private static boolean isConstructor(String name) {
+        return INIT.equals(name);
+    }
 }
